@@ -11,28 +11,49 @@ import ListItem from '@mui/material/ListItem'
 import { useState } from 'react'
 
 export default function WishList() {
-  const [wishes, setWishes] = useState<string[]>([])
+  const [wishes, setWishes] = useState<[number, string, boolean][]>([])
+  const [searchResults, setSearchResults] = useState<
+    [number, string, boolean][]
+  >([])
+  // 検索窓の表示
   const [wish, setWish] = useState<string>('')
   const [search, setSearch] = useState<string>('')
-  const [searchResults, setSearchResults] = useState<string[]>([])
 
   const handleAddWish = () => {
     if (wish.trim()) {
-      setWishes((prevWishes) => [...prevWishes, wish])
+      const newId = wishes.length > 0 ? wishes[wishes.length - 1][0] + 1 : 1
+      setWishes((prevWishes) => [...prevWishes, [newId + 1, wish, false]])
       setWish('')
     }
   }
-
   const handleSearch = () => {
-    if (search.trim()) {
-      wishes.forEach((item) => {
-        if (item === search) {
-          setSearchResults((prevSearchResults) => [...prevSearchResults, item])
-        }
-      })
-    }
+    setSearchResults(
+      search
+        ? wishes.filter((item) =>
+            item[1].toLowerCase().includes(search.toLowerCase())
+          )
+        : wishes
+    )
     setSearch('')
   }
+  const searchClear = () => {
+    setSearchResults([])
+  }
+
+  const toggleBought = (index: number) => {
+    console.log(index)
+    setWishes((prevWishes) =>
+      prevWishes.map((item, i) =>
+        i === index ? [item[0], item[1], !item[2]] : item
+      )
+    )
+    setSearchResults((prevSearchResults) =>
+      prevSearchResults.map((item, i) =>
+        i === index ? [item[0], item[1], !item[2]] : item
+      )
+    )
+  }
+
   return (
     <Card>
       <h1>WishList</h1>
@@ -62,12 +83,20 @@ export default function WishList() {
         <Button variant='text' onClick={handleSearch}>
           検索
         </Button>
+        <Button variant='text' onClick={searchClear}>
+          クリア
+        </Button>
       </Stack>
 
       <List>
-        if(search='')
-        {wishes.map((item, index) => (
-          <ListItem key={index}>{item}</ListItem>
+        {(searchResults.length > 0 ? searchResults : wishes).map((item) => (
+          <ListItem>
+            <span>{item[0]}</span>
+            <span>{item[1]}</span>
+            <Button variant='text' onClick={() => toggleBought(item[0])}>
+              {item[2] ? '購入済み' : '未購入'}
+            </Button>
+          </ListItem>
         ))}
       </List>
     </Card>
