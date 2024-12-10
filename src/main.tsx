@@ -1,10 +1,11 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
+import Teams from './Teams.tsx'
+import WishList from './WishList.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    {/* <Teams /> */}
+    <WishList />
   </StrictMode>
 )
