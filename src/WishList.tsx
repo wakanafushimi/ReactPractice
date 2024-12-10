@@ -22,7 +22,7 @@ export default function WishList() {
   const handleAddWish = () => {
     if (wish.trim()) {
       const newId = wishes.length > 0 ? wishes[wishes.length - 1][0] + 1 : 1
-      setWishes((prevWishes) => [...prevWishes, [newId + 1, wish, false]])
+      setWishes((prevWishes) => [...prevWishes, [newId, wish, false]])
       setWish('')
     }
   }
@@ -43,13 +43,13 @@ export default function WishList() {
   const toggleBought = (index: number) => {
     console.log(index)
     setWishes((prevWishes) =>
-      prevWishes.map((item, i) =>
-        i === index ? [item[0], item[1], !item[2]] : item
+      prevWishes.map((item) =>
+        item[0] === index ? [item[0], item[1], !item[2]] : item
       )
     )
     setSearchResults((prevSearchResults) =>
-      prevSearchResults.map((item, i) =>
-        i === index ? [item[0], item[1], !item[2]] : item
+      prevSearchResults.map((item) =>
+        item[0] === index ? [item[0], item[1], !item[2]] : item
       )
     )
   }
