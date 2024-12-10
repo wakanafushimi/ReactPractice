@@ -15,6 +15,7 @@ export default function WishList() {
   const [searchResults, setSearchResults] = useState<
     [number, string, boolean][]
   >([])
+  const [editId, setEditId] = useState<number>()
   // 検索窓の表示
   const [wish, setWish] = useState<string>('')
   const [search, setSearch] = useState<string>('')
@@ -41,7 +42,6 @@ export default function WishList() {
   }
 
   const toggleBought = (index: number) => {
-    console.log(index)
     setWishes((prevWishes) =>
       prevWishes.map((item) =>
         item[0] === index ? [item[0], item[1], !item[2]] : item
@@ -52,6 +52,25 @@ export default function WishList() {
         item[0] === index ? [item[0], item[1], !item[2]] : item
       )
     )
+  }
+
+  const editHandle = (id: number) => {
+    setEditId(id) // 編集対象のIDをセット
+  }
+
+  // 編集内容を保存
+  const handleSaveEdit = (id: number, newWish: string) => {
+    setWishes((prevWishes) =>
+      prevWishes.map((item) =>
+        item[0] === id ? [item[0], newWish, item[2]] : item
+      )
+    )
+    setSearchResults((prevSearchResults) =>
+      prevSearchResults.map((item) =>
+        item[0] === id ? [item[0], newWish, item[2]] : item
+      )
+    )
+    setEditId(null) // 編集を終了
   }
 
   return (
@@ -90,12 +109,44 @@ export default function WishList() {
 
       <List>
         {(searchResults.length > 0 ? searchResults : wishes).map((item) => (
-          <ListItem>
-            <span>{item[0]}</span>
-            <span>{item[1]}</span>
+          <ListItem key={item[0]}>
+            {editId === item[0] ? (
+              <TextField
+                id='outlined-basic'
+                label='ほしいもの'
+                variant='outlined'
+                value={item[1]}
+                onChange={(e) => {
+                  setWishes((prevWishes) =>
+                    prevWishes.map((i) =>
+                      i[0] === item[0] ? [i[0], e.target.value, i[2]] : i
+                    )
+                  )
+                }}
+              />
+            ) : (
+              <span>{item[1]}</span>
+            )}
             <Button variant='text' onClick={() => toggleBought(item[0])}>
               {item[2] ? '購入済み' : '未購入'}
             </Button>
+            {editId === item[0] ? (
+              <Button
+                variant='text'
+                onClick={() => handleSaveEdit(item[0], item[1])}
+              >
+                保存
+              </Button>
+            ) : (
+              <div>
+                <Button variant='text' onClick={() => editHandle(item[0])}>
+                  編集
+                </Button>
+                <Button variant='text' onClick={() => deleteHandle(item[0])}>
+                  削除
+                </Button>
+              </div>
+            )}
           </ListItem>
         ))}
       </List>
