@@ -65,11 +65,10 @@ export default function WishList() {
       </Stack>
 
       <List>
-        if(search=''){
+        if(search='')
         {wishes.map((item, index) => (
           <ListItem key={index}>{item}</ListItem>
         ))}
-    }
       </List>
     </Card>
   )
