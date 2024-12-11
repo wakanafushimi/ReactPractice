@@ -1,5 +1,6 @@
 // やること
 // コンポーネント分割
+// 未入力だったとき
 
 import React from 'react'
 import Button from '@mui/material/Button'
@@ -10,18 +11,40 @@ import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
 import { useState, useEffect } from 'react'
 
+interface WishItem {
+  id: number
+  wish: string
+  isBought: boolean
+  date: string
+  price: number
+  imageUrl?: string | null // 画像URL (オプション)
+}
+
 export default function WishList() {
-  const [wishes, setWishes] = useState<
-    [number, string, boolean, string, number][]
-  >([])
-  const [searchResults, setSearchResults] = useState<
-    [number, string, boolean, string, number][]
-  >([])
+  const [wishes, setWishes] = useState<WishItem[]>([
+    {
+      id: 1,
+      wish: '車',
+      isBought: false,
+      date: '2024/2/1',
+      price: 1000000,
+      imageUrl: 'https://placehold.jp/150x150.png',
+    },
+    {
+      id: 2,
+      wish: 'スマートフォン',
+      isBought: false,
+      date: '2024/2/10',
+      price: 80000,
+      imageUrl: 'https://placehold.jp/150x150.png',
+    },
+  ])
+  const [searchResults, setSearchResults] = useState<WishItem[]>([])
   const [editId, setEditId] = useState<number>()
   // 検索窓の表示
   const [wish, setWish] = useState<string>('')
   const [search, setSearch] = useState<string>('')
-  const [price, setPrice] = useState<number>()
+  const [price, setPrice] = useState<number | null>()
 
   // 日時
   const [date, setDate] = useState<string>('')
@@ -31,22 +54,40 @@ export default function WishList() {
     setDate(formattedDate)
   }, [])
 
+  // 画像のアップロード
+  const [image, setImage] = useState<File | null>(null)
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files ? e.target.files[0] : null
+    if (file) {
+      setImage(file)
+    }
+  }
+
   const handleAddWish = () => {
     if (wish.trim() && price !== null) {
       const newId = wishes.length > 0 ? wishes[wishes.length - 1][0] + 1 : 1
-      setWishes((prevWishes) => [
-        ...prevWishes,
-        [newId, wish, false, date, price],
-      ])
+      const imageUrl = image ? URL.createObjectURL(image) : null
+      console.log(imageUrl)
+      const newWishItem: WishItem = {
+        id: newId,
+        wish,
+        isBought: false,
+        date,
+        price,
+        imageUrl,
+      }
+      setWishes((prevWishes) => [...prevWishes, newWishItem])
       setWish('')
       setPrice(null)
+      setImage(null)
     }
   }
+
   const handleSearch = () => {
     setSearchResults(
       search
         ? wishes.filter((item) =>
-            item[1].toLowerCase().includes(search.toLowerCase())
+            item.wish.toLowerCase().includes(search.toLowerCase())
           )
         : wishes
     )
@@ -56,19 +97,15 @@ export default function WishList() {
     setSearchResults([])
   }
 
-  const toggleBought = (index: number) => {
+  const toggleBought = (id: number) => {
     setWishes((prevWishes) =>
       prevWishes.map((item) =>
-        item[0] === index
-          ? [item[0], item[1], !item[2], item[3], item[4]]
-          : item
+        item.id === id ? { ...item, isBought: !item.isBought } : item
       )
     )
     setSearchResults((prevSearchResults) =>
       prevSearchResults.map((item) =>
-        item[0] === index
-          ? [item[0], item[1], !item[2], item[3], item[4]]
-          : item
+        item.id === id ? { ...item, isBought: !item.isBought } : item
       )
     )
   }
@@ -80,20 +117,22 @@ export default function WishList() {
   const handleSaveEdit = (id: number, newWish: string, newPrice: number) => {
     setWishes((prevWishes) =>
       prevWishes.map((item) =>
-        item[0] === id ? [item[0], newWish, item[2], date, newPrice] : item
+        item.id === id ? { ...item, wish: newWish, price: newPrice } : item
       )
     )
     setSearchResults((prevSearchResults) =>
       prevSearchResults.map((item) =>
-        item[0] === id ? [item[0], newWish, item[2], date, newPrice] : item
+        item.id === id ? { ...item, wish: newWish, price: newPrice } : item
       )
     )
     setEditId(null)
   }
+
+  // 削除
   const deleteHandle = (id: number) => {
-    setWishes((prevWishes) => prevWishes.filter((item) => item[0] !== id))
+    setWishes((prevWishes) => prevWishes.filter((item) => item.id !== id))
     setSearchResults((prevSearchResults) =>
-      prevSearchResults.filter((item) => item[0] !== id)
+      prevSearchResults.filter((item) => item.id !== id)
     )
   }
   const sortPriceDesc = () => {}
@@ -121,6 +160,10 @@ export default function WishList() {
           type='number'
           onChange={(e) => setPrice(Number(e.target.value))}
         />
+        <input type='file' accept='image/*' onChange={handleImageChange} />
+        {image && (
+          <img src={URL.createObjectURL(image)} alt='Preview' width={100} />
+        )}
         <Button variant='text' onClick={handleAddWish}>
           追加
         </Button>
@@ -157,67 +200,68 @@ export default function WishList() {
 
       <List>
         {(searchResults.length > 0 ? searchResults : wishes).map((item) => (
-          <ListItem key={item[0]}>
-            {editId === item[0] ? (
+          <ListItem key={item.id}>
+            {editId === item.id ? (
               <TextField
                 id='outlined-basic'
                 label='ほしいもの'
                 variant='outlined'
-                value={item[1]}
+                value={item.wish}
                 onChange={(e) => {
                   setWishes((prevWishes) =>
                     prevWishes.map((i) =>
-                      i[0] === item[0]
-                        ? [i[0], e.target.value, i[2], i[3], i[4]]
-                        : i
+                      i.id === item.id ? { ...i, wish: e.target.value } : i
                     )
                   )
                 }}
               />
             ) : (
-              <span>{item[1]}</span>
+              <span>{item.wish}</span>
             )}
-            {editId === item[0] ? (
+            {editId === item.id ? (
               <TextField
                 id='outlined-basic'
                 label='金額'
                 variant='outlined'
-                value={item[4]}
+                value={item.price}
                 type='number'
                 onChange={(e) => {
                   setWishes((prevWishes) =>
                     prevWishes.map((i) =>
-                      i[0] === item[0]
-                        ? [i[0], i[1], i[2], i[3], Number(e.target.value)]
+                      i.id === item.id
+                        ? { ...i, price: Number(e.target.value) }
                         : i
                     )
                   )
                 }}
               />
             ) : (
-              <span>{item[4]}円</span>
+              <span>{item.price}円</span>
             )}
-            <Button variant='text' onClick={() => toggleBought(item[0])}>
-              {item[2] ? '購入済み' : '未購入'}
+            <Button variant='text' onClick={() => toggleBought(item.id)}>
+              {item.isBought ? '購入済み' : '未購入'}
             </Button>
-            {editId === item[0] ? (
+            {editId === item.id ? (
               <Button
                 variant='text'
-                onClick={() => handleSaveEdit(item[0], item[1], item[4])}
+                onClick={() => handleSaveEdit(item.id, item.wish, item.price)}
               >
                 保存
               </Button>
             ) : (
               <div>
-                <Button variant='text' onClick={() => editHandle(item[0])}>
+                <Button variant='text' onClick={() => editHandle(item.id)}>
                   編集
                 </Button>
-                <Button variant='text' onClick={() => deleteHandle(item[0])}>
+                <Button variant='text' onClick={() => deleteHandle(item.id)}>
                   削除
                 </Button>
               </div>
             )}
-            <span>追加日:{item[3]}</span>
+            <span>追加日: {item.date}</span>
+            {item.imageUrl && (
+              <img src={item.imageUrl} alt='Item' width={100} />
+            )}
           </ListItem>
         ))}
       </List>
