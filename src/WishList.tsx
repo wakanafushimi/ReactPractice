@@ -1,6 +1,5 @@
 // やること
 // コンポーネント分割
-// 未入力だったとき
 // 数字を空にする
 
 import React from 'react'
@@ -15,10 +14,15 @@ import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import InputLabel from '@mui/material/InputLabel'
 import FormControl from '@mui/material/FormControl'
-import Grid from '@mui/material/Grid'
+import Grid from '@mui/material/Grid2'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
+import { createTheme, ThemeProvider, styled } from '@mui/material/styles'
+import { orange } from '@mui/material/colors'
 import { useState, useEffect } from 'react'
+
+import { ToastContainer, toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 interface WishItem {
   id: number
@@ -30,6 +34,14 @@ interface WishItem {
   category: string
 }
 
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: orange[500], // オレンジ色をテーマのプライマリカラーに設定
+    },
+  },
+})
+
 export default function WishList() {
   const [wishes, setWishes] = useState<WishItem[]>([
     {
@@ -38,7 +50,8 @@ export default function WishList() {
       isBought: false,
       date: '2024/2/1',
       price: 1000000,
-      imageUrl: 'https://placehold.jp/150x150.png',
+      imageUrl:
+        'https://plus.unsplash.com/premium_photo-1664303847960-586318f59035?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8Y2FyfGVufDB8fDB8fHww',
       category: '家電',
     },
     {
@@ -47,7 +60,8 @@ export default function WishList() {
       isBought: false,
       date: '2024/2/10',
       price: 80000,
-      imageUrl: 'https://placehold.jp/150x150.png',
+      imageUrl:
+        'https://images.unsplash.com/photo-1599950753725-ea5d8aba0d29?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8aXBob25lfGVufDB8fDB8fHww',
       category: 'ファッション',
     },
   ])
@@ -91,7 +105,9 @@ export default function WishList() {
     if (wish.trim() && price !== null) {
       const newId =
         wishes.length > 0 ? Math.max(...wishes.map((item) => item.id)) + 1 : 1
-      const imageUrl = newImage ? URL.createObjectURL(newImage) : null
+      const imageUrl = newImage
+        ? URL.createObjectURL(newImage)
+        : 'https://placehold.jp/150x150.png'
       const newWishItem: WishItem = {
         id: newId,
         wish,
@@ -106,6 +122,10 @@ export default function WishList() {
       setPrice(null)
       setNewImage(null)
       setCategory('家電')
+    }
+    if (!wish.trim() || price === null || price === undefined) {
+      toast.error('ほしいものと金額を入力してください。')
+      return
     }
   }
 
@@ -217,199 +237,279 @@ export default function WishList() {
   }
 
   return (
-    <Box>
-      <Typography variant='h4' gutterBottom>
-        WishList
-      </Typography>
-      {/* 追加 */}
-      <Stack spacing={2} sx={{ maxWidth: 400, marginBottom: 3 }}>
-        <TextField
-          id='outlined-basic'
-          label='ほしいもの'
-          variant='outlined'
-          value={wish}
-          onChange={(e) => setWish(e.target.value)}
-        />
-        <TextField
-          id='outlined-basic'
-          label='金額'
-          variant='outlined'
-          value={price}
-          type='number'
-          onChange={(e) => setPrice(Number(e.target.value))}
-        />
-        <FormControl variant='outlined'>
-          <InputLabel>カテゴリ</InputLabel>
-          <Select
-            value={category}
-            onChange={(e) => setCategory(e.target.value as string)}
-            label='カテゴリ'
-          >
-            <MenuItem value='家電'>家電</MenuItem>
-            <MenuItem value='ファッション'>ファッション</MenuItem>
-            <MenuItem value='食品'>食品</MenuItem>
-          </Select>
-        </FormControl>
-        <input type='file' accept='image/*' onChange={handleImageChange} />
-        {newImage && (
-          <img src={URL.createObjectURL(newImage)} alt='Preview' width={100} />
-        )}
-        <Button variant='text' onClick={handleAddWish}>
-          追加
-        </Button>
-      </Stack>
+    <ThemeProvider theme={theme}>
+      <ToastContainer />
+      <Box>
+        <Typography variant='h4' gutterBottom>
+          WishList
+        </Typography>
+        {/* 追加 */}
+        <Stack spacing={2} sx={{ maxWidth: 400, marginBottom: 3 }}>
+          <TextField
+            id='outlined-basic'
+            label='ほしいもの'
+            variant='outlined'
+            value={wish}
+            onChange={(e) => setWish(e.target.value)}
+          />
+          <TextField
+            id='outlined-basic'
+            label='金額'
+            variant='outlined'
+            value={price}
+            type='number'
+            onChange={(e) => setPrice(Number(e.target.value))}
+          />
+          <FormControl variant='outlined'>
+            <InputLabel>カテゴリ</InputLabel>
+            <Select
+              value={category}
+              onChange={(e) => setCategory(e.target.value as string)}
+              label='カテゴリ'
+            >
+              <MenuItem value='家電'>家電</MenuItem>
+              <MenuItem value='ファッション'>ファッション</MenuItem>
+              <MenuItem value='食品'>食品</MenuItem>
+            </Select>
+          </FormControl>
+          <input type='file' accept='image/*' onChange={handleImageChange} />
+          {newImage && (
+            <img
+              src={URL.createObjectURL(newImage)}
+              alt='Preview'
+              width={100}
+            />
+          )}
+          <Button variant='contained' onClick={handleAddWish}>
+            追加
+          </Button>
+        </Stack>
 
-      {/* 検索 */}
-      <Stack direction='row' spacing={2} sx={{ marginBottom: 3 }}>
-        <TextField
-          id='outlined-basic'
-          label='検索'
-          variant='outlined'
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <Button variant='text' onClick={handleSearch}>
-          検索
-        </Button>
-        <Button variant='text' onClick={searchClear}>
-          クリア
-        </Button>
-      </Stack>
-      <Stack direction='row' spacing={2} sx={{ marginBottom: 3 }}>
-        <Button variant='text' onClick={sortPriceDesc}>
-          金額降順
-        </Button>
-        <Button variant='text' onClick={sortPrice}>
-          金額昇順
-        </Button>
-        <Button variant='text' onClick={sortDateDesc}>
-          日付降順
-        </Button>
-        <Button variant='text' onClick={sortDate}>
-          日付昇順
-        </Button>
-      </Stack>
+        {/* 検索 */}
+        <Stack direction='row' spacing={2} sx={{ marginBottom: 3 }}>
+          <TextField
+            id='outlined-basic'
+            label='検索'
+            variant='outlined'
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <Button variant='text' onClick={handleSearch}>
+            検索
+          </Button>
+          <Button variant='text' onClick={searchClear}>
+            クリア
+          </Button>
+        </Stack>
+        <Stack direction='row' spacing={2} sx={{ marginBottom: 3 }}>
+          <Button variant='text' onClick={sortPriceDesc}>
+            金額降順
+          </Button>
+          <Button variant='text' onClick={sortPrice}>
+            金額昇順
+          </Button>
+          <Button variant='text' onClick={sortDateDesc}>
+            日付降順
+          </Button>
+          <Button variant='text' onClick={sortDate}>
+            日付昇順
+          </Button>
+        </Stack>
 
-      <Grid container spacing={2}>
-        {(searchResults.length > 0 ? searchResults : wishes).map((item) => (
-          <Grid item xs={12} sm={6} md={3} key={item.id}>
-            <Card sx={{ width: '100%' }}>
-              <CardContent>
-                {editId === item.id ? (
-                  <>
-                    <TextField
-                      id='outlined-basic'
-                      label='ほしいもの'
-                      variant='outlined'
-                      value={item.wish}
-                      onChange={(e) => {
-                        setWishes((prevWishes) =>
-                          prevWishes.map((i) =>
-                            i.id === item.id
-                              ? { ...i, wish: e.target.value }
-                              : i
-                          )
-                        )
-                      }}
-                    />
-                    <TextField
-                      id='outlined-basic'
-                      label='金額'
-                      variant='outlined'
-                      value={item.price}
-                      type='number'
-                      onChange={(e) => {
-                        setWishes((prevWishes) =>
-                          prevWishes.map((i) =>
-                            i.id === item.id
-                              ? { ...i, price: Number(e.target.value) }
-                              : i
-                          )
-                        )
-                      }}
-                    />
-                    <FormControl variant='outlined'>
-                      <InputLabel>カテゴリ</InputLabel>
-                      <Select
-                        value={item.category}
+        <Grid container spacing={2}>
+          {(searchResults.length > 0 ? searchResults : wishes).map((item) => (
+            <Grid size={{ xs: 12, sm: 6, md: 3 }} key={item.id}>
+              <Card sx={{ width: '100%' }}>
+                <CardContent>
+                  {editId === item.id ? (
+                    <Stack spacing={1}>
+                      <input
+                        type='file'
+                        accept='image/*'
+                        onChange={handleEditedImageChange}
+                      />
+                      {editedImage ? (
+                        <div
+                          style={{
+                            width: '100%',
+                            height: 0,
+                            paddingTop: '100%',
+                            position: 'relative',
+                            overflow: 'hidden',
+                            borderRadius: '8px',
+                            marginBottom: 10,
+                          }}
+                        >
+                          <img
+                            src={URL.createObjectURL(editedImage)}
+                            alt='preview'
+                            style={{
+                              position: 'absolute',
+                              top: '50%',
+                              left: '50%',
+                              transform: 'translate(-50%, -50%)',
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <div
+                          style={{
+                            width: '100%',
+                            height: 0,
+                            paddingTop: '100%',
+                            position: 'relative',
+                            overflow: 'hidden',
+                            borderRadius: '8px',
+                            marginBottom: 10,
+                          }}
+                        >
+                          <img
+                            src={item.imageUrl}
+                            alt='preview'
+                            style={{
+                              position: 'absolute',
+                              top: '50%',
+                              left: '50%',
+                              transform: 'translate(-50%, -50%)',
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                            }}
+                          />
+                        </div>
+                      )}
+                      <TextField
+                        id='outlined-basic'
+                        label='ほしいもの'
+                        variant='outlined'
+                        value={item.wish}
                         onChange={(e) => {
                           setWishes((prevWishes) =>
                             prevWishes.map((i) =>
                               i.id === item.id
-                                ? { ...i, category: e.target.value as string }
+                                ? { ...i, wish: e.target.value }
                                 : i
                             )
                           )
                         }}
-                        label='カテゴリ'
-                      >
-                        <MenuItem value='家電'>家電</MenuItem>
-                        <MenuItem value='ファッション'>ファッション</MenuItem>
-                        <MenuItem value='食品'>食品</MenuItem>
-                      </Select>
-                    </FormControl>
-                    <input
-                      type='file'
-                      accept='image/*'
-                      onChange={handleEditedImageChange}
-                    />
-                    {editedImage && (
-                      <img
-                        src={URL.createObjectURL(editedImage)}
-                        alt='Preview'
-                        width={100}
                       />
-                    )}
-                    <Button
-                      variant='text'
-                      onClick={() =>
-                        handleSaveEdit(
-                          item.id,
-                          item.wish,
-                          item.price,
-                          item.category
-                        )
-                      }
-                    >
-                      保存
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    {item.imageUrl && (
-                      <img src={item.imageUrl} alt='Item' width='100%' />
-                    )}
-                    <Typography variant='h6'>{item.wish}</Typography>
-                    <Typography variant='body1'>{item.category}</Typography>
-                    <Typography variant='body2'>{item.price}円</Typography>
-                    <Typography variant='body2'>追加日: {item.date}</Typography>
-                    <Stack direction='row' spacing={1} sx={{ marginTop: 2 }}>
+                      <TextField
+                        id='outlined-basic'
+                        label='金額'
+                        variant='outlined'
+                        value={item.price}
+                        type='number'
+                        onChange={(e) => {
+                          setWishes((prevWishes) =>
+                            prevWishes.map((i) =>
+                              i.id === item.id
+                                ? { ...i, price: Number(e.target.value) }
+                                : i
+                            )
+                          )
+                        }}
+                      />
+                      <FormControl variant='outlined'>
+                        <InputLabel>カテゴリ</InputLabel>
+                        <Select
+                          value={item.category}
+                          onChange={(e) => {
+                            setWishes((prevWishes) =>
+                              prevWishes.map((i) =>
+                                i.id === item.id
+                                  ? { ...i, category: e.target.value as string }
+                                  : i
+                              )
+                            )
+                          }}
+                          label='カテゴリ'
+                        >
+                          <MenuItem value='家電'>家電</MenuItem>
+                          <MenuItem value='ファッション'>ファッション</MenuItem>
+                          <MenuItem value='食品'>食品</MenuItem>
+                        </Select>
+                      </FormControl>
+
                       <Button
                         variant='outlined'
-                        onClick={() => toggleBought(item.id)}
+                        onClick={() =>
+                          handleSaveEdit(
+                            item.id,
+                            item.wish,
+                            item.price,
+                            item.category
+                          )
+                        }
                       >
-                        {item.isBought ? '購入済み' : '未購入'}
-                      </Button>
-                      <Button
-                        variant='outlined'
-                        onClick={() => editHandle(item.id)}
-                      >
-                        編集
-                      </Button>
-                      <Button
-                        variant='outlined'
-                        onClick={() => deleteHandle(item.id)}
-                      >
-                        削除
+                        保存
                       </Button>
                     </Stack>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
-    </Box>
+                  ) : (
+                    <>
+                      {item.imageUrl && (
+                        <div
+                          style={{
+                            width: '100%',
+                            height: 0,
+                            paddingTop: '100%',
+                            position: 'relative',
+                            overflow: 'hidden',
+                            borderRadius: '8px',
+                            marginBottom: 10,
+                          }}
+                        >
+                          <img
+                            src={item.imageUrl}
+                            alt={item.wish}
+                            style={{
+                              position: 'absolute',
+                              top: '50%',
+                              left: '50%',
+                              transform: 'translate(-50%, -50%)',
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                            }}
+                          />
+                        </div>
+                      )}
+                      <Typography variant='h6'>{item.wish}</Typography>
+                      <Typography variant='body1'>{item.category}</Typography>
+                      <Typography variant='body2'>{item.price}円</Typography>
+                      <Typography variant='body2'>
+                        追加日: {item.date}
+                      </Typography>
+                      <Stack direction='row' spacing={1} sx={{ marginTop: 2 }}>
+                        <Button
+                          variant='outlined'
+                          onClick={() => toggleBought(item.id)}
+                        >
+                          {item.isBought ? '購入済み' : '未購入'}
+                        </Button>
+                        <Button
+                          variant='outlined'
+                          onClick={() => editHandle(item.id)}
+                        >
+                          編集
+                        </Button>
+                        <Button
+                          variant='outlined'
+                          onClick={() => deleteHandle(item.id)}
+                        >
+                          削除
+                        </Button>
+                      </Stack>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+    </ThemeProvider>
   )
 }
