@@ -68,27 +68,22 @@ export default function WishList() {
   }, [])
 
   // 画像のアップロード
-  const [image, setImage] = useState<File | null>(null)
+  const [newImage, setNewImage] = useState<File | null>(null) //画像プレビュー
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files ? e.target.files[0] : null
     if (file) {
-      setImage(file)
+      setNewImage(file)
     }
   }
-  // const handleImageEdit=(e:React.ChangeEvent<HTMLInputElement>,id:number) => {
-  //   const file = e.target.files ? e.target.files[0] : null
-  //   if (file) {
-  //     setImage(file)
-  //   }
-  //   const imageUrl = image ? URL.createObjectURL(image) : null
-  // }
+
+  // 画像編集
+  const [editedImage, setEditedImage] = useState<File | null>(null) //画像プレビュー
 
   const handleAddWish = () => {
     if (wish.trim() && price !== null) {
       const newId =
         wishes.length > 0 ? Math.max(...wishes.map((item) => item.id)) + 1 : 1
-      const imageUrl = image ? URL.createObjectURL(image) : null
-      console.log(imageUrl)
+      const imageUrl = newImage ? URL.createObjectURL(newImage) : null
       const newWishItem: WishItem = {
         id: newId,
         wish,
@@ -101,7 +96,7 @@ export default function WishList() {
       setWishes((prevWishes) => [...prevWishes, newWishItem])
       setWish('')
       setPrice(null)
-      setImage(null)
+      setNewImage(null)
       setCategory('家電')
     }
   }
@@ -168,6 +163,7 @@ export default function WishList() {
     )
   }
 
+  // ソート
   const sortPrice = () => {
     const sortedWishes = [
       ...(searchResults.length ? searchResults : wishes),
@@ -231,8 +227,8 @@ export default function WishList() {
           </Select>
         </FormControl>
         <input type='file' accept='image/*' onChange={handleImageChange} />
-        {image && (
-          <img src={URL.createObjectURL(image)} alt='Preview' width={100} />
+        {newImage && (
+          <img src={URL.createObjectURL(newImage)} alt='Preview' width={100} />
         )}
         <Button variant='text' onClick={handleAddWish}>
           追加
@@ -333,9 +329,9 @@ export default function WishList() {
                       accept='image/*'
                       onChange={handleImageChange}
                     />
-                    {image && (
+                    {editedImage && (
                       <img
-                        src={URL.createObjectURL(image)}
+                        src={URL.createObjectURL(editedImage)}
                         alt='Preview'
                         width={100}
                       />
