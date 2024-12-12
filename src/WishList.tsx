@@ -176,6 +176,7 @@ export default function WishList() {
       )
     )
     setEditId(null)
+    setEditedImage(null)
   }
 
   // 削除
