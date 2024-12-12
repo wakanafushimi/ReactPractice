@@ -1,6 +1,7 @@
 // やること
 // コンポーネント分割
 // 未入力だったとき
+// 数字を空にする
 
 import React from 'react'
 import Button from '@mui/material/Button'
@@ -9,6 +10,10 @@ import Card from '@mui/material/Card'
 import Stack from '@mui/material/Stack'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
+import Select from '@mui/material/Select'
+import MenuItem from '@mui/material/MenuItem'
+import InputLabel from '@mui/material/InputLabel'
+import FormControl from '@mui/material/FormControl'
 import { useState, useEffect } from 'react'
 
 interface WishItem {
@@ -16,8 +21,9 @@ interface WishItem {
   wish: string
   isBought: boolean
   date: string
-  price: number
-  imageUrl?: string | null // 画像URL (オプション)
+  price: number | null
+  imageUrl?: string | null
+  category: string
 }
 
 export default function WishList() {
@@ -29,6 +35,7 @@ export default function WishList() {
       date: '2024/2/1',
       price: 1000000,
       imageUrl: 'https://placehold.jp/150x150.png',
+      category: '家電',
     },
     {
       id: 2,
@@ -37,6 +44,7 @@ export default function WishList() {
       date: '2024/2/10',
       price: 80000,
       imageUrl: 'https://placehold.jp/150x150.png',
+      category: 'ファッション',
     },
   ])
   const [searchResults, setSearchResults] = useState<WishItem[]>([])
@@ -44,7 +52,8 @@ export default function WishList() {
   // 検索窓の表示
   const [wish, setWish] = useState<string>('')
   const [search, setSearch] = useState<string>('')
-  const [price, setPrice] = useState<number | null>()
+  const [price, setPrice] = useState<number | null | undefined>()
+  const [category, setCategory] = useState<string>('家電')
 
   // 日時
   const [date, setDate] = useState<string>('')
@@ -76,11 +85,13 @@ export default function WishList() {
         date,
         price,
         imageUrl,
+        category,
       }
       setWishes((prevWishes) => [...prevWishes, newWishItem])
       setWish('')
       setPrice(null)
       setImage(null)
+      setCategory('家電')
     }
   }
 
@@ -115,15 +126,24 @@ export default function WishList() {
     setEditId(id)
   }
 
-  const handleSaveEdit = (id: number, newWish: string, newPrice: number) => {
+  const handleSaveEdit = (
+    id: number,
+    newWish: string,
+    newPrice: number,
+    newCategory: string
+  ) => {
     setWishes((prevWishes) =>
       prevWishes.map((item) =>
-        item.id === id ? { ...item, wish: newWish, price: newPrice } : item
+        item.id === id
+          ? { ...item, wish: newWish, price: newPrice, category: newCategory }
+          : item
       )
     )
     setSearchResults((prevSearchResults) =>
       prevSearchResults.map((item) =>
-        item.id === id ? { ...item, wish: newWish, price: newPrice } : item
+        item.id === id
+          ? { ...item, wish: newWish, price: newPrice, category: newCategory }
+          : item
       )
     )
     setEditId(null)
@@ -185,6 +205,18 @@ export default function WishList() {
           type='number'
           onChange={(e) => setPrice(Number(e.target.value))}
         />
+        <FormControl variant='outlined'>
+          <InputLabel>カテゴリ</InputLabel>
+          <Select
+            value={category}
+            onChange={(e) => setCategory(e.target.value as string)}
+            label='カテゴリ'
+          >
+            <MenuItem value='家電'>家電</MenuItem>
+            <MenuItem value='ファッション'>ファッション</MenuItem>
+            <MenuItem value='食品'>食品</MenuItem>
+          </Select>
+        </FormControl>
         <input type='file' accept='image/*' onChange={handleImageChange} />
         {image && (
           <img src={URL.createObjectURL(image)} alt='Preview' width={100} />
@@ -227,61 +259,85 @@ export default function WishList() {
         {(searchResults.length > 0 ? searchResults : wishes).map((item) => (
           <ListItem key={item.id}>
             {editId === item.id ? (
-              <TextField
-                id='outlined-basic'
-                label='ほしいもの'
-                variant='outlined'
-                value={item.wish}
-                onChange={(e) => {
-                  setWishes((prevWishes) =>
-                    prevWishes.map((i) =>
-                      i.id === item.id ? { ...i, wish: e.target.value } : i
+              <>
+                <TextField
+                  id='outlined-basic'
+                  label='ほしいもの'
+                  variant='outlined'
+                  value={item.wish}
+                  onChange={(e) => {
+                    setWishes((prevWishes) =>
+                      prevWishes.map((i) =>
+                        i.id === item.id ? { ...i, wish: e.target.value } : i
+                      )
                     )
-                  )
-                }}
-              />
-            ) : (
-              <span>{item.wish}</span>
-            )}
-            {editId === item.id ? (
-              <TextField
-                id='outlined-basic'
-                label='金額'
-                variant='outlined'
-                value={item.price}
-                type='number'
-                onChange={(e) => {
-                  setWishes((prevWishes) =>
-                    prevWishes.map((i) =>
-                      i.id === item.id
-                        ? { ...i, price: Number(e.target.value) }
-                        : i
+                  }}
+                />
+                <TextField
+                  id='outlined-basic'
+                  label='金額'
+                  variant='outlined'
+                  value={item.price}
+                  type='number'
+                  onChange={(e) => {
+                    setWishes((prevWishes) =>
+                      prevWishes.map((i) =>
+                        i.id === item.id
+                          ? { ...i, price: Number(e.target.value) }
+                          : i
+                      )
                     )
-                  )
-                }}
-              />
+                  }}
+                />
+                <FormControl variant='outlined'>
+                  <InputLabel>カテゴリ</InputLabel>
+                  <Select
+                    value={item.category}
+                    onChange={(e) => {
+                      setWishes((prevWishes) =>
+                        prevWishes.map((i) =>
+                          i.id === item.id
+                            ? { ...i, category: e.target.value as string }
+                            : i
+                        )
+                      )
+                    }}
+                    label='カテゴリ'
+                  >
+                    <MenuItem value='家電'>家電</MenuItem>
+                    <MenuItem value='ファッション'>ファッション</MenuItem>
+                    <MenuItem value='食品'>食品</MenuItem>
+                  </Select>
+                </FormControl>
+                <Button
+                  variant='text'
+                  onClick={() =>
+                    handleSaveEdit(
+                      item.id,
+                      item.wish,
+                      item.price,
+                      item.category
+                    )
+                  }
+                >
+                  保存
+                </Button>
+              </>
             ) : (
-              <span>{item.price}円</span>
-            )}
-            <Button variant='text' onClick={() => toggleBought(item.id)}>
-              {item.isBought ? '購入済み' : '未購入'}
-            </Button>
-            {editId === item.id ? (
-              <Button
-                variant='text'
-                onClick={() => handleSaveEdit(item.id, item.wish, item.price)}
-              >
-                保存
-              </Button>
-            ) : (
-              <div>
+              <>
+                <span>{item.wish}</span>
+                <span>{item.price}円</span>
+                <span>{item.category}</span>
+                <Button variant='text' onClick={() => toggleBought(item.id)}>
+                  {item.isBought ? '購入済み' : '未購入'}
+                </Button>
                 <Button variant='text' onClick={() => editHandle(item.id)}>
                   編集
                 </Button>
                 <Button variant='text' onClick={() => deleteHandle(item.id)}>
                   削除
                 </Button>
-              </div>
+              </>
             )}
             <span>追加日: {item.date}</span>
             {item.imageUrl && (
