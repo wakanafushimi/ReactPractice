@@ -65,7 +65,8 @@ export default function WishList() {
 
   const handleAddWish = () => {
     if (wish.trim() && price !== null) {
-      const newId = wishes.length > 0 ? wishes[wishes.length - 1][0] + 1 : 1
+      const newId =
+        wishes.length > 0 ? Math.max(...wishes.map((item) => item.id)) + 1 : 1
       const imageUrl = image ? URL.createObjectURL(image) : null
       console.log(imageUrl)
       const newWishItem: WishItem = {
@@ -135,10 +136,34 @@ export default function WishList() {
       prevSearchResults.filter((item) => item.id !== id)
     )
   }
-  const sortPriceDesc = () => {}
-  const sortPrice = () => {}
-  const sortDateDesc = () => {}
-  const sortDate = () => {}
+
+  const sortPrice = () => {
+    const sortedWishes = [
+      ...(searchResults.length ? searchResults : wishes),
+    ].sort((a, b) => a.price - b.price)
+    setSearchResults(sortedWishes)
+  }
+
+  const sortPriceDesc = () => {
+    const sortedWishes = [
+      ...(searchResults.length ? searchResults : wishes),
+    ].sort((a, b) => b.price - a.price)
+    setSearchResults(sortedWishes)
+  }
+
+  const sortDate = () => {
+    const sortedWishes = [
+      ...(searchResults.length ? searchResults : wishes),
+    ].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    setSearchResults(sortedWishes)
+  }
+
+  const sortDateDesc = () => {
+    const sortedWishes = [
+      ...(searchResults.length ? searchResults : wishes),
+    ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    setSearchResults(sortedWishes)
+  }
 
   return (
     <Card>
