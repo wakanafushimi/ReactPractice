@@ -59,6 +59,10 @@ export default function WishList() {
   const [price, setPrice] = useState<number | null | undefined>()
   const [category, setCategory] = useState<string>('家電')
 
+  //画像プレビュー
+  const [newImage, setNewImage] = useState<File | null>(null)
+  const [editedImage, setEditedImage] = useState<File | null>(null)
+
   // 日時
   const [date, setDate] = useState<string>('')
   useEffect(() => {
@@ -68,7 +72,6 @@ export default function WishList() {
   }, [])
 
   // 画像のアップロード
-  const [newImage, setNewImage] = useState<File | null>(null) //画像プレビュー
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files ? e.target.files[0] : null
     if (file) {
@@ -77,7 +80,12 @@ export default function WishList() {
   }
 
   // 画像編集
-  const [editedImage, setEditedImage] = useState<File | null>(null) //画像プレビュー
+  const handleEditedImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files ? e.target.files[0] : null
+    if (file) {
+      setEditedImage(file)
+    }
+  }
 
   const handleAddWish = () => {
     if (wish.trim() && price !== null) {
@@ -138,17 +146,32 @@ export default function WishList() {
     newPrice: number,
     newCategory: string
   ) => {
+    const updatedImageUrl = editedImage
+      ? URL.createObjectURL(editedImage)
+      : null
     setWishes((prevWishes) =>
       prevWishes.map((item) =>
         item.id === id
-          ? { ...item, wish: newWish, price: newPrice, category: newCategory }
+          ? {
+              ...item,
+              wish: newWish,
+              price: newPrice,
+              category: newCategory,
+              imageUrl: updatedImageUrl || item.imageUrl,
+            }
           : item
       )
     )
     setSearchResults((prevSearchResults) =>
       prevSearchResults.map((item) =>
         item.id === id
-          ? { ...item, wish: newWish, price: newPrice, category: newCategory }
+          ? {
+              ...item,
+              wish: newWish,
+              price: newPrice,
+              category: newCategory,
+              imageUrl: updatedImageUrl || item.imageUrl,
+            }
           : item
       )
     )
@@ -327,7 +350,7 @@ export default function WishList() {
                     <input
                       type='file'
                       accept='image/*'
-                      onChange={handleImageChange}
+                      onChange={handleEditedImageChange}
                     />
                     {editedImage && (
                       <img
