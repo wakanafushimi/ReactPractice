@@ -7,6 +7,7 @@ import React from 'react'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
 import Card from '@mui/material/Card'
+import CardContent from '@mui/material/CardContent'
 import Stack from '@mui/material/Stack'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
@@ -14,6 +15,9 @@ import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import InputLabel from '@mui/material/InputLabel'
 import FormControl from '@mui/material/FormControl'
+import Grid from '@mui/material/Grid'
+import Typography from '@mui/material/Typography'
+import Box from '@mui/material/Box'
 import { useState, useEffect } from 'react'
 
 interface WishItem {
@@ -71,6 +75,13 @@ export default function WishList() {
       setImage(file)
     }
   }
+  // const handleImageEdit=(e:React.ChangeEvent<HTMLInputElement>,id:number) => {
+  //   const file = e.target.files ? e.target.files[0] : null
+  //   if (file) {
+  //     setImage(file)
+  //   }
+  //   const imageUrl = image ? URL.createObjectURL(image) : null
+  // }
 
   const handleAddWish = () => {
     if (wish.trim() && price !== null) {
@@ -186,10 +197,12 @@ export default function WishList() {
   }
 
   return (
-    <Card>
-      <h1>WishList</h1>
+    <Box>
+      <Typography variant='h4' gutterBottom>
+        WishList
+      </Typography>
       {/* 追加 */}
-      <Stack>
+      <Stack spacing={2} sx={{ maxWidth: 400, marginBottom: 3 }}>
         <TextField
           id='outlined-basic'
           label='ほしいもの'
@@ -227,7 +240,7 @@ export default function WishList() {
       </Stack>
 
       {/* 検索 */}
-      <Stack>
+      <Stack direction='row' spacing={2} sx={{ marginBottom: 3 }}>
         <TextField
           id='outlined-basic'
           label='検索'
@@ -242,110 +255,141 @@ export default function WishList() {
           クリア
         </Button>
       </Stack>
-      <Button variant='text' onClick={sortPriceDesc}>
-        金額降順
-      </Button>
-      <Button variant='text' onClick={sortPrice}>
-        金額昇順
-      </Button>
-      <Button variant='text' onClick={sortDateDesc}>
-        日付降順
-      </Button>
-      <Button variant='text' onClick={sortDate}>
-        日付昇順
-      </Button>
+      <Stack direction='row' spacing={2} sx={{ marginBottom: 3 }}>
+        <Button variant='text' onClick={sortPriceDesc}>
+          金額降順
+        </Button>
+        <Button variant='text' onClick={sortPrice}>
+          金額昇順
+        </Button>
+        <Button variant='text' onClick={sortDateDesc}>
+          日付降順
+        </Button>
+        <Button variant='text' onClick={sortDate}>
+          日付昇順
+        </Button>
+      </Stack>
 
-      <List>
+      <Grid container spacing={2}>
         {(searchResults.length > 0 ? searchResults : wishes).map((item) => (
-          <ListItem key={item.id}>
-            {editId === item.id ? (
-              <>
-                <TextField
-                  id='outlined-basic'
-                  label='ほしいもの'
-                  variant='outlined'
-                  value={item.wish}
-                  onChange={(e) => {
-                    setWishes((prevWishes) =>
-                      prevWishes.map((i) =>
-                        i.id === item.id ? { ...i, wish: e.target.value } : i
-                      )
-                    )
-                  }}
-                />
-                <TextField
-                  id='outlined-basic'
-                  label='金額'
-                  variant='outlined'
-                  value={item.price}
-                  type='number'
-                  onChange={(e) => {
-                    setWishes((prevWishes) =>
-                      prevWishes.map((i) =>
-                        i.id === item.id
-                          ? { ...i, price: Number(e.target.value) }
-                          : i
-                      )
-                    )
-                  }}
-                />
-                <FormControl variant='outlined'>
-                  <InputLabel>カテゴリ</InputLabel>
-                  <Select
-                    value={item.category}
-                    onChange={(e) => {
-                      setWishes((prevWishes) =>
-                        prevWishes.map((i) =>
-                          i.id === item.id
-                            ? { ...i, category: e.target.value as string }
-                            : i
+          <Grid item xs={12} sm={6} md={3} key={item.id}>
+            <Card sx={{ width: '100%' }}>
+              <CardContent>
+                {editId === item.id ? (
+                  <>
+                    <TextField
+                      id='outlined-basic'
+                      label='ほしいもの'
+                      variant='outlined'
+                      value={item.wish}
+                      onChange={(e) => {
+                        setWishes((prevWishes) =>
+                          prevWishes.map((i) =>
+                            i.id === item.id
+                              ? { ...i, wish: e.target.value }
+                              : i
+                          )
                         )
-                      )
-                    }}
-                    label='カテゴリ'
-                  >
-                    <MenuItem value='家電'>家電</MenuItem>
-                    <MenuItem value='ファッション'>ファッション</MenuItem>
-                    <MenuItem value='食品'>食品</MenuItem>
-                  </Select>
-                </FormControl>
-                <Button
-                  variant='text'
-                  onClick={() =>
-                    handleSaveEdit(
-                      item.id,
-                      item.wish,
-                      item.price,
-                      item.category
-                    )
-                  }
-                >
-                  保存
-                </Button>
-              </>
-            ) : (
-              <>
-                <span>{item.wish}</span>
-                <span>{item.price}円</span>
-                <span>{item.category}</span>
-                <Button variant='text' onClick={() => toggleBought(item.id)}>
-                  {item.isBought ? '購入済み' : '未購入'}
-                </Button>
-                <Button variant='text' onClick={() => editHandle(item.id)}>
-                  編集
-                </Button>
-                <Button variant='text' onClick={() => deleteHandle(item.id)}>
-                  削除
-                </Button>
-              </>
-            )}
-            <span>追加日: {item.date}</span>
-            {item.imageUrl && (
-              <img src={item.imageUrl} alt='Item' width={100} />
-            )}
-          </ListItem>
+                      }}
+                    />
+                    <TextField
+                      id='outlined-basic'
+                      label='金額'
+                      variant='outlined'
+                      value={item.price}
+                      type='number'
+                      onChange={(e) => {
+                        setWishes((prevWishes) =>
+                          prevWishes.map((i) =>
+                            i.id === item.id
+                              ? { ...i, price: Number(e.target.value) }
+                              : i
+                          )
+                        )
+                      }}
+                    />
+                    <FormControl variant='outlined'>
+                      <InputLabel>カテゴリ</InputLabel>
+                      <Select
+                        value={item.category}
+                        onChange={(e) => {
+                          setWishes((prevWishes) =>
+                            prevWishes.map((i) =>
+                              i.id === item.id
+                                ? { ...i, category: e.target.value as string }
+                                : i
+                            )
+                          )
+                        }}
+                        label='カテゴリ'
+                      >
+                        <MenuItem value='家電'>家電</MenuItem>
+                        <MenuItem value='ファッション'>ファッション</MenuItem>
+                        <MenuItem value='食品'>食品</MenuItem>
+                      </Select>
+                    </FormControl>
+                    <input
+                      type='file'
+                      accept='image/*'
+                      onChange={handleImageChange}
+                    />
+                    {image && (
+                      <img
+                        src={URL.createObjectURL(image)}
+                        alt='Preview'
+                        width={100}
+                      />
+                    )}
+                    <Button
+                      variant='text'
+                      onClick={() =>
+                        handleSaveEdit(
+                          item.id,
+                          item.wish,
+                          item.price,
+                          item.category
+                        )
+                      }
+                    >
+                      保存
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    {item.imageUrl && (
+                      <img src={item.imageUrl} alt='Item' width='100%' />
+                    )}
+                    <Typography variant='h6'>{item.wish}</Typography>
+                    <Typography variant='body1'>{item.category}</Typography>
+                    <Typography variant='body2'>{item.price}円</Typography>
+                    <Typography variant='body2'>追加日: {item.date}</Typography>
+                    <Stack direction='row' spacing={1} sx={{ marginTop: 2 }}>
+                      <Button
+                        variant='outlined'
+                        onClick={() => toggleBought(item.id)}
+                      >
+                        {item.isBought ? '購入済み' : '未購入'}
+                      </Button>
+                      <Button
+                        variant='outlined'
+                        onClick={() => editHandle(item.id)}
+                      >
+                        編集
+                      </Button>
+                      <Button
+                        variant='outlined'
+                        onClick={() => deleteHandle(item.id)}
+                      >
+                        削除
+                      </Button>
+                    </Stack>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
         ))}
-      </List>
-    </Card>
+      </Grid>
+    </Box>
   )
 }
