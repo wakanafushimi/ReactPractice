@@ -1,6 +1,5 @@
 // やること
 // コンポーネント分割
-// 数字を空にする
 
 import React from 'react'
 import Button from '@mui/material/Button'
@@ -8,8 +7,6 @@ import TextField from '@mui/material/TextField'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Stack from '@mui/material/Stack'
-import List from '@mui/material/List'
-import ListItem from '@mui/material/ListItem'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import InputLabel from '@mui/material/InputLabel'
@@ -37,7 +34,7 @@ interface WishItem {
 const theme = createTheme({
   palette: {
     primary: {
-      main: orange[500], // オレンジ色をテーマのプライマリカラーに設定
+      main: orange[500],
     },
   },
 })
@@ -72,11 +69,9 @@ export default function WishList() {
   const [search, setSearch] = useState<string>('')
   const [price, setPrice] = useState<number | null | undefined>()
   const [category, setCategory] = useState<string>('家電')
-
   //画像プレビュー
   const [newImage, setNewImage] = useState<File | null>(null)
   const [editedImage, setEditedImage] = useState<File | null>(null)
-
   // 日時
   const [date, setDate] = useState<string>('')
   useEffect(() => {
@@ -119,7 +114,7 @@ export default function WishList() {
       }
       setWishes((prevWishes) => [...prevWishes, newWishItem])
       setWish('')
-      setPrice(null)
+      setPrice(0)
       setNewImage(null)
       setCategory('家電')
     }
@@ -329,57 +324,59 @@ export default function WishList() {
                         onChange={handleEditedImageChange}
                       />
                       {editedImage ? (
-                        <div
+                        // <div
+                        //   style={{
+                        //     width: '100%',
+                        //     height: 0,
+                        //     paddingTop: '100%',
+                        //     position: 'relative',
+                        //     overflow: 'hidden',
+                        //     borderRadius: '8px',
+                        //     marginBottom: 10,
+                        //   }}
+                        // >
+                        <img
+                          src={URL.createObjectURL(editedImage)}
+                          alt='preview'
                           style={{
-                            width: '100%',
-                            height: 0,
-                            paddingTop: '100%',
-                            position: 'relative',
-                            overflow: 'hidden',
-                            borderRadius: '8px',
-                            marginBottom: 10,
+                            //   position: 'absolute',
+                            //   top: '50%',
+                            //   left: '50%',
+                            //   transform: 'translate(-50%, -50%)',
+                            //   width: '100%',
+                            //   height: '100%',
+                            //   objectFit: 'cover',
+                            width: '40px',
                           }}
-                        >
-                          <img
-                            src={URL.createObjectURL(editedImage)}
-                            alt='preview'
-                            style={{
-                              position: 'absolute',
-                              top: '50%',
-                              left: '50%',
-                              transform: 'translate(-50%, -50%)',
-                              width: '100%',
-                              height: '100%',
-                              objectFit: 'cover',
-                            }}
-                          />
-                        </div>
+                        />
                       ) : (
-                        <div
+                        // </div>
+                        // <div
+                        //   style={{
+                        //     width: '100%',
+                        //     height: 0,
+                        //     paddingTop: '100%',
+                        //     position: 'relative',
+                        //     overflow: 'hidden',
+                        //     borderRadius: '8px',
+                        //     marginBottom: 10,
+                        //   }}
+                        // >
+                        <img
+                          src={item.imageUrl}
+                          alt='preview'
                           style={{
-                            width: '100%',
-                            height: 0,
-                            paddingTop: '100%',
-                            position: 'relative',
-                            overflow: 'hidden',
-                            borderRadius: '8px',
-                            marginBottom: 10,
+                            //   position: 'absolute',
+                            //   top: '50%',
+                            //   left: '50%',
+                            //   transform: 'translate(-50%, -50%)',
+                            //   width: '100%',
+                            //   height: '100%',
+                            //   objectFit: 'cover',
+                            width: '40px',
                           }}
-                        >
-                          <img
-                            src={item.imageUrl}
-                            alt='preview'
-                            style={{
-                              position: 'absolute',
-                              top: '50%',
-                              left: '50%',
-                              transform: 'translate(-50%, -50%)',
-                              width: '100%',
-                              height: '100%',
-                              objectFit: 'cover',
-                            }}
-                          />
-                        </div>
+                        />
+                        // </div>
                       )}
                       <TextField
                         id='outlined-basic'
