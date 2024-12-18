@@ -62,12 +62,14 @@ export default function WishList() {
     },
   ])
   const [searchResults, setSearchResults] = useState<WishItem[]>([])
+  const [sortedWishes, setSortedWishes] = useState<WishItem[]>([])
+
   const [editId, setEditId] = useState<number>()
   // 検索窓の表示
   const [wish, setWish] = useState<string>('')
-  const [search, setSearch] = useState<string>('')
   const [price, setPrice] = useState<number | null>('')
   const [category, setCategory] = useState<string>('家電')
+  const [search, setSearch] = useState<string>('')
   //画像プレビュー
   const [newImage, setNewImage] = useState<File | null>(null)
   const [editedImage, setEditedImage] = useState<File | null>(null)
@@ -96,6 +98,7 @@ export default function WishList() {
   }
 
   const handleAddWish = () => {
+    searchClear() //sort後addできなくなる対策
     if (wish.trim() && price !== null) {
       const newId =
         wishes.length > 0 ? Math.max(...wishes.map((item) => item.id)) + 1 : 1
@@ -304,6 +307,13 @@ export default function WishList() {
         />
 
         <Grid container spacing={2}>
+          {/* デバッグ用 */}
+          {/* {searchResults.length > 0 ? (
+            <p>searchResultsShowing</p>
+          ) : (
+            <p>wishesShowing</p>
+          )} */}
+
           {(searchResults.length > 0 ? searchResults : wishes).map((item) => (
             <Grid size={{ xs: 12, sm: 6, md: 3 }} key={item.id}>
               <Card sx={{ width: '100%' }}>
@@ -316,59 +326,21 @@ export default function WishList() {
                         onChange={handleEditedImageChange}
                       />
                       {editedImage ? (
-                        // <div
-                        //   style={{
-                        //     width: '100%',
-                        //     height: 0,
-                        //     paddingTop: '100%',
-                        //     position: 'relative',
-                        //     overflow: 'hidden',
-                        //     borderRadius: '8px',
-                        //     marginBottom: 10,
-                        //   }}
-                        // >
                         <img
                           src={URL.createObjectURL(editedImage)}
                           alt='preview'
                           style={{
-                            //   position: 'absolute',
-                            //   top: '50%',
-                            //   left: '50%',
-                            //   transform: 'translate(-50%, -50%)',
-                            //   width: '100%',
-                            //   height: '100%',
-                            //   objectFit: 'cover',
                             width: '40px',
                           }}
                         />
                       ) : (
-                        // </div>
-                        // <div
-                        //   style={{
-                        //     width: '100%',
-                        //     height: 0,
-                        //     paddingTop: '100%',
-                        //     position: 'relative',
-                        //     overflow: 'hidden',
-                        //     borderRadius: '8px',
-                        //     marginBottom: 10,
-                        //   }}
-                        // >
                         <img
                           src={item.imageUrl}
                           alt='preview'
                           style={{
-                            //   position: 'absolute',
-                            //   top: '50%',
-                            //   left: '50%',
-                            //   transform: 'translate(-50%, -50%)',
-                            //   width: '100%',
-                            //   height: '100%',
-                            //   objectFit: 'cover',
                             width: '40px',
                           }}
                         />
-                        // </div>
                       )}
                       <TextField
                         id='outlined-basic'
