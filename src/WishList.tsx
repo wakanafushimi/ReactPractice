@@ -17,6 +17,19 @@ import { useState, useEffect } from 'react'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
+import { initializeApp } from 'firebase/app'
+import { getFirestore, collection, getDocs } from 'firebase/firestore/lite'
+import { getAnalytics } from 'firebase/analytics'
+const firebaseConfig = {
+  apiKey: 'AIzaSyA9-JVW6EJU93oThhhcS4qfUm8vHwGOQvk',
+  authDomain: 'reactpracticedb.firebaseapp.com',
+  projectId: 'reactpracticedb',
+  storageBucket: 'reactpracticedb.firebasestorage.app',
+  messagingSenderId: '50081227303',
+  appId: '1:50081227303:web:65eebf3e00d793132ca402',
+  measurementId: 'G-M61TLYEHBW',
+}
+
 // コンポーネント
 import SortControls from './SortControls'
 
@@ -40,26 +53,26 @@ const theme = createTheme({
 
 export default function WishList() {
   const [wishes, setWishes] = useState<WishItem[]>([
-    {
-      id: 1,
-      wish: '車',
-      isBought: false,
-      date: '2024/2/1',
-      price: 1000000,
-      imageUrl:
-        'https://plus.unsplash.com/premium_photo-1664303847960-586318f59035?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8Y2FyfGVufDB8fDB8fHww',
-      category: '家電',
-    },
-    {
-      id: 2,
-      wish: 'スマートフォン',
-      isBought: false,
-      date: '2024/2/10',
-      price: 80000,
-      imageUrl:
-        'https://images.unsplash.com/photo-1599950753725-ea5d8aba0d29?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8aXBob25lfGVufDB8fDB8fHww',
-      category: 'ファッション',
-    },
+    // {
+    //   id: 1,
+    //   wish: '車',
+    //   isBought: false,
+    //   date: '2024/2/1',
+    //   price: 1000000,
+    //   imageUrl:
+    //     'https://plus.unsplash.com/premium_photo-1664303847960-586318f59035?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8Y2FyfGVufDB8fDB8fHww',
+    //   category: '家電',
+    // },
+    // {
+    //   id: 2,
+    //   wish: 'スマートフォン',
+    //   isBought: false,
+    //   date: '2024/2/10',
+    //   price: 80000,
+    //   imageUrl:
+    //     'https://images.unsplash.com/photo-1599950753725-ea5d8aba0d29?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8aXBob25lfGVufDB8fDB8fHww',
+    //   category: 'ファッション',
+    // },
   ])
   const [searchResults, setSearchResults] = useState<WishItem[]>([])
   const [sortedWishes, setSortedWishes] = useState<WishItem[]>([])
@@ -79,6 +92,35 @@ export default function WishList() {
     const currentDate = new Date()
     const formattedDate = currentDate.toLocaleDateString()
     setDate(formattedDate)
+  }, [])
+
+  //firebase
+  useEffect(() => {
+    const app = initializeApp(firebaseConfig)
+    const db = getFirestore(app)
+
+    const fetchWishes = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, 'wishes')) // コレクション名を 'wishList' に変更
+        const wishesData: WishItem[] = querySnapshot.docs.map((doc) => {
+          const data = doc.data()
+          return {
+            id: data.id,
+            wish: data.wish,
+            isBought: data.isBought,
+            date: data.date,
+            price: data.price,
+            imageUrl: data.imageUrl || null,
+            category: data.category,
+          }
+        })
+        setWishes(wishesData)
+      } catch (error) {
+        console.error('Error fetching wish list from Firestore:', error)
+      }
+    }
+
+    fetchWishes()
   }, [])
 
   // 画像のアップロード
