@@ -18,8 +18,13 @@ import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
 import { initializeApp } from 'firebase/app'
-import { getFirestore, collection, getDocs } from 'firebase/firestore/lite'
-import { getAnalytics } from 'firebase/analytics'
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  addDoc,
+} from 'firebase/firestore/lite'
+
 const firebaseConfig = {
   apiKey: 'AIzaSyA9-JVW6EJU93oThhhcS4qfUm8vHwGOQvk',
   authDomain: 'reactpracticedb.firebaseapp.com',
@@ -29,6 +34,9 @@ const firebaseConfig = {
   appId: '1:50081227303:web:65eebf3e00d793132ca402',
   measurementId: 'G-M61TLYEHBW',
 }
+
+const app = initializeApp(firebaseConfig)
+const db = getFirestore(app)
 
 // コンポーネント
 import SortControls from './SortControls'
@@ -52,30 +60,8 @@ const theme = createTheme({
 })
 
 export default function WishList() {
-  const [wishes, setWishes] = useState<WishItem[]>([
-    // {
-    //   id: 1,
-    //   wish: '車',
-    //   isBought: false,
-    //   date: '2024/2/1',
-    //   price: 1000000,
-    //   imageUrl:
-    //     'https://plus.unsplash.com/premium_photo-1664303847960-586318f59035?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8Y2FyfGVufDB8fDB8fHww',
-    //   category: '家電',
-    // },
-    // {
-    //   id: 2,
-    //   wish: 'スマートフォン',
-    //   isBought: false,
-    //   date: '2024/2/10',
-    //   price: 80000,
-    //   imageUrl:
-    //     'https://images.unsplash.com/photo-1599950753725-ea5d8aba0d29?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8aXBob25lfGVufDB8fDB8fHww',
-    //   category: 'ファッション',
-    // },
-  ])
+  const [wishes, setWishes] = useState<WishItem[]>([])
   const [searchResults, setSearchResults] = useState<WishItem[]>([])
-  const [sortedWishes, setSortedWishes] = useState<WishItem[]>([])
 
   const [editId, setEditId] = useState<number>()
   // 検索窓の表示
@@ -84,8 +70,8 @@ export default function WishList() {
   const [category, setCategory] = useState<string>('家電')
   const [search, setSearch] = useState<string>('')
   //画像プレビュー
-  const [newImage, setNewImage] = useState<File | null>(null)
-  const [editedImage, setEditedImage] = useState<File | null>(null)
+  const [newImage, setNewImage] = useState<string | null>(null)
+  const [editedImage, setEditedImage] = useState<string | null>(null)
   // 日時
   const [date, setDate] = useState<string>('')
   useEffect(() => {
@@ -94,59 +80,35 @@ export default function WishList() {
     setDate(formattedDate)
   }, [])
 
-  //firebase
+  //firestoreのデータをwishesに格納
+  //疑問：ここasync必要？
   useEffect(() => {
-    const app = initializeApp(firebaseConfig)
-    const db = getFirestore(app)
-
     const fetchWishes = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, 'wishes')) // コレクション名を 'wishList' に変更
-        const wishesData: WishItem[] = querySnapshot.docs.map((doc) => {
-          const data = doc.data()
-          return {
-            id: data.id,
-            wish: data.wish,
-            isBought: data.isBought,
-            date: data.date,
-            price: data.price,
-            imageUrl: data.imageUrl || null,
-            category: data.category,
-          }
-        })
-        setWishes(wishesData)
-      } catch (error) {
-        console.error('Error fetching wish list from Firestore:', error)
-      }
+      const querySnapshot = await getDocs(collection(db, 'wishes'))
+      const wishesData: WishItem[] = querySnapshot.docs.map((doc) => {
+        const data = doc.data()
+        return {
+          id: data.id,
+          wish: data.wish,
+          isBought: data.isBought,
+          date: data.date,
+          price: data.price,
+          imageUrl: data.imageUrl || null,
+          category: data.category,
+        }
+      })
+      setWishes(wishesData)
     }
-
     fetchWishes()
   }, [])
-
-  // 画像のアップロード
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files ? e.target.files[0] : null
-    if (file) {
-      setNewImage(file)
-    }
-  }
-
-  // 画像編集
-  const handleEditedImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files ? e.target.files[0] : null
-    if (file) {
-      setEditedImage(file)
-    }
-  }
 
   const handleAddWish = () => {
     searchClear() //sort後addできなくなる対策
     if (wish.trim() && price !== null) {
       const newId =
         wishes.length > 0 ? Math.max(...wishes.map((item) => item.id)) + 1 : 1
-      const imageUrl = newImage
-        ? URL.createObjectURL(newImage)
-        : 'https://placehold.jp/150x150.png'
+      const imageUrl = newImage || 'https://placehold.jp/150x150.png'
+
       const newWishItem: WishItem = {
         id: newId,
         wish,
@@ -156,7 +118,9 @@ export default function WishList() {
         imageUrl,
         category,
       }
+      addDoc(collection(db, 'wishes'), newWishItem)
       setWishes((prevWishes) => [...prevWishes, newWishItem])
+
       setWish('')
       setPrice(0)
       setNewImage(null)
@@ -203,11 +167,9 @@ export default function WishList() {
     id: number,
     newWish: string,
     newPrice: number,
+    newImageUrl: string,
     newCategory: string
   ) => {
-    const updatedImageUrl = editedImage
-      ? URL.createObjectURL(editedImage)
-      : null
     setWishes((prevWishes) =>
       prevWishes.map((item) =>
         item.id === id
@@ -216,7 +178,7 @@ export default function WishList() {
               wish: newWish,
               price: newPrice,
               category: newCategory,
-              imageUrl: updatedImageUrl || item.imageUrl,
+              imageUrl: newImageUrl,
             }
           : item
       )
@@ -229,7 +191,7 @@ export default function WishList() {
               wish: newWish,
               price: newPrice,
               category: newCategory,
-              imageUrl: updatedImageUrl || item.imageUrl,
+              imageUrl: newImageUrl,
             }
           : item
       )
@@ -311,14 +273,13 @@ export default function WishList() {
               <MenuItem value='食品'>食品</MenuItem>
             </Select>
           </FormControl>
-          <input type='file' accept='image/*' onChange={handleImageChange} />
-          {newImage && (
-            <img
-              src={URL.createObjectURL(newImage)}
-              alt='Preview'
-              width={100}
-            />
-          )}
+          <TextField
+            label='画像URL'
+            value={newImage || ''}
+            onChange={(e) => setNewImage(e.target.value)}
+          />
+          {newImage && <img src={newImage} alt='Preview' width={100} />}
+
           <Button variant='contained' onClick={handleAddWish}>
             追加
           </Button>
@@ -362,28 +323,18 @@ export default function WishList() {
                 <CardContent>
                   {editId === item.id ? (
                     <Stack spacing={1}>
-                      <input
-                        type='file'
-                        accept='image/*'
-                        onChange={handleEditedImageChange}
+                      <TextField
+                        label='画像URL'
+                        value={editedImage || item.imageUrl || ''}
+                        onChange={(e) => setEditedImage(e.target.value)}
                       />
-                      {editedImage ? (
-                        <img
-                          src={URL.createObjectURL(editedImage)}
-                          alt='preview'
-                          style={{
-                            width: '40px',
-                          }}
-                        />
-                      ) : (
-                        <img
-                          src={item.imageUrl}
-                          alt='preview'
-                          style={{
-                            width: '40px',
-                          }}
-                        />
-                      )}
+
+                      <img
+                        src={editedImage || item.imageUrl}
+                        alt='preview'
+                        width={40}
+                      />
+
                       <TextField
                         id='outlined-basic'
                         label='ほしいもの'
@@ -443,6 +394,7 @@ export default function WishList() {
                             item.id,
                             item.wish,
                             item.price,
+                            editedImage,
                             item.category
                           )
                         }
